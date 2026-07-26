@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -13,6 +14,11 @@ login_manager.login_message_category = 'info'
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Debug: print DB URI on serverless for troubleshooting
+    if os.environ.get('VERCEL'):
+        print(f'[Vercel] DB URI: {app.config["SQLALCHEMY_DATABASE_URI"]}')
+        print(f'[Vercel] /tmp writable: {os.access("/tmp", os.W_OK)}')
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -35,8 +41,15 @@ def create_app(config_class=Config):
         return {'now': datetime.utcnow()}
 
     with app.app_context():
-        db.create_all()
-        from app.utils.seed import seed_data
-        seed_data()
+        try:
+            db.create_all()
+            from app.utils.seed import seed_data
+            seed_data()
+        except Exception as e:
+            print(f'[App Init] DB setup error: {e}')
+            # On serverless, re-raise to surface the real issue
+            if os.environ.get('VERCEL'):
+                raise
 
     return app
+

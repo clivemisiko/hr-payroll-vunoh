@@ -4,12 +4,24 @@ from dotenv import load_dotenv
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
 
+# Detect serverless environment (Vercel, AWS Lambda, etc.)
+IS_SERVERLESS = bool(os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'))
+
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'vunoh-hr-dev-secret-change-in-production'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'instance', 'vunoh_hr.db')
+
+    # On Vercel/serverless: filesystem is read-only except /tmp
+    if IS_SERVERLESS:
+        _db_path = '/tmp/vunoh_hr.db'
+    else:
+        _instance_dir = os.path.join(basedir, 'instance')
+        os.makedirs(_instance_dir, exist_ok=True)
+        _db_path = os.path.join(_instance_dir, 'vunoh_hr.db')
+
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{_db_path}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
     # Business Rule Limits
     LEAVE_MIN_NOTICE_DAYS = int(os.environ.get('LEAVE_MIN_NOTICE_DAYS', 3))
     LEAVE_MAX_CONSECUTIVE_DAYS = int(os.environ.get('LEAVE_MAX_CONSECUTIVE_DAYS', 21))
