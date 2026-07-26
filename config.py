@@ -8,19 +8,35 @@ load_dotenv(os.path.join(basedir, '.env'))
 IS_SERVERLESS = bool(os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'))
 
 
+def _get_database_uri():
+    """Resolve the database URI with fallback to local SQLite."""
+    uri = os.environ.get('DATABASE_URL')
+    if uri:
+        # Fix Neon / Heroku 'postgres://' → 'postgresql://' (SQLAlchemy 2.x requirement)
+        if uri.startswith('postgres://'):
+            uri = uri.replace('postgres://', 'postgresql://', 1)
+        return uri
+
+    # Fallback: local SQLite (development only)
+    instance_dir = os.path.join(basedir, 'instance')
+    os.makedirs(instance_dir, exist_ok=True)
+    return f'sqlite:///{os.path.join(instance_dir, "vunoh_hr.db")}'
+
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'vunoh-hr-dev-secret-change-in-production'
 
-    # On Vercel/serverless: filesystem is read-only except /tmp
-    if IS_SERVERLESS:
-        _db_path = '/tmp/vunoh_hr.db'
-    else:
-        _instance_dir = os.path.join(basedir, 'instance')
-        os.makedirs(_instance_dir, exist_ok=True)
-        _db_path = os.path.join(_instance_dir, 'vunoh_hr.db')
-
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{_db_path}'
+    SQLALCHEMY_DATABASE_URI = _get_database_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Connection pool settings for serverless (Neon uses connection pooling)
+    if IS_SERVERLESS:
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,     # Verify connections are alive before use
+            'pool_recycle': 300,       # Recycle connections every 5 min
+            'pool_size': 5,
+            'max_overflow': 10,
+        }
 
     # Business Rule Limits
     LEAVE_MIN_NOTICE_DAYS = int(os.environ.get('LEAVE_MIN_NOTICE_DAYS', 3))
@@ -50,3 +66,4 @@ class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
     SECRET_KEY = 'test-secret'
+
