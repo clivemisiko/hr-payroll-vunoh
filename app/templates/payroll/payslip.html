@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block page_title %}Payslip — {{ payslip.employee.full_name }}{% endblock %}
+{% block topbar_actions %}
+  <button onclick="window.print()" class="btn btn-ghost btn-sm">🖨 Print / Save PDF</button>
+  <a href="{{ url_for('payroll.period_detail', id=payslip.period.id) if current_user.is_manager else url_for('payroll.my_payslips') }}" class="btn btn-ghost btn-sm">← Back</a>
+{% endblock %}
+{% block content %}
+<div style="max-width:720px;margin:0 auto;" class="printable">
+  <div class="card" style="box-shadow:var(--shadow-lg);">
+    <!-- Header -->
+    <div class="payslip-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-size:24px;font-weight:800;letter-spacing:-0.5px;">VUNOH GLOBAL</div>
+          <div style="font-size:13px;opacity:0.8;margin-top:2px;">Official Salary Payslip</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:16px;font-weight:700;">{{ payslip.period.label }}</div>
+          <div style="font-size:12px;opacity:0.8;">Generated: {{ payslip.created_at.strftime('%d %b %Y') }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Employee Information -->
+    <div class="card-body" style="border-bottom:1px solid var(--border);background:var(--surface-2);">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <span style="font-size:12px;color:var(--text-muted);display:block;">Employee Name</span>
+          <strong style="font-size:16px;color:var(--navy);">{{ payslip.employee.full_name }}</strong>
+          <div style="font-size:13px;color:var(--text-muted);">{{ payslip.employee.role }}</div>
+        </div>
+        <div>
+          <span style="font-size:12px;color:var(--text-muted);display:block;">Department & Employment</span>
+          <strong>{{ payslip.employee.department.name if payslip.employee.department else 'N/A' }}</strong>
+          <div style="font-size:13px;color:var(--text-muted);">{{ payslip.employee.employment_type.replace('_',' ')|title }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Breakdown -->
+    <div class="card-body">
+      <h4 style="font-size:14px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:12px;">Earnings & Proration</h4>
+      <div class="payslip-row">
+        <span>Base Monthly Salary</span>
+        <span>{{ '{:,.2f}'.format(payslip.gross_salary) }}</span>
+      </div>
+      <div class="payslip-row">
+        <span>Working Days in Month</span>
+        <span>{{ payslip.days_in_month }} days</span>
+      </div>
+      <div class="payslip-row">
+        <span>Days Worked / Applicable</span>
+        <span>{{ payslip.days_worked }} days</span>
+      </div>
+      {% if payslip.unpaid_leave_days > 0 %}
+      <div class="payslip-row" style="color:var(--danger);">
+        <span>Unpaid Leave Deduction ({{ payslip.unpaid_leave_days }} days)</span>
+        <span>-{{ '{:,.2f}'.format(payslip.unpaid_leave_deduction) }}</span>
+      </div>
+      {% endif %}
+      <div class="payslip-total">
+        <span>Prorated Gross Earnings</span>
+        <span>{{ '{:,.2f}'.format(payslip.prorated_gross) }}</span>
+      </div>
+
+      <h4 style="font-size:14px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin:24px 0 12px;">Statutory Deductions</h4>
+      <div class="payslip-row">
+        <span>Social Security (6% cap at 4,500)</span>
+        <span>-{{ '{:,.2f}'.format(payslip.social_security) }}</span>
+      </div>
+      <div class="payslip-row">
+        <span>Taxable Income</span>
+        <span>{{ '{:,.2f}'.format(payslip.taxable_income) }}</span>
+      </div>
+      <div class="payslip-row">
+        <span>Income Tax (Progressive Brackets)</span>
+        <span>-{{ '{:,.2f}'.format(payslip.income_tax) }}</span>
+      </div>
+      <div class="payslip-total" style="color:var(--danger);font-size:14px;">
+        <span>Total Deductions</span>
+        <span>-{{ '{:,.2f}'.format(payslip.total_deductions) }}</span>
+      </div>
+
+      <!-- Net Pay -->
+      <div style="background:var(--navy-deep);color:#fff;padding:20px;border-radius:12px;margin-top:24px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;opacity:0.7;">Net Take-Home Pay</div>
+          <div style="font-size:12px;opacity:0.5;">Direct Transfer</div>
+        </div>
+        <div style="font-size:28px;font-weight:800;color:var(--accent);">
+          KES {{ '{:,.2f}'.format(payslip.net_pay) }}
+        </div>
+      </div>
+
+      {% if payslip.notes %}
+      <div style="margin-top:16px;font-size:12px;color:var(--text-muted);background:var(--surface-2);padding:10px;border-radius:6px;">
+        <strong>Note:</strong> {{ payslip.notes }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<style>
+@media print {
+  .sidebar, .topbar, .btn, .flash-container { display: none !important; }
+  .main-content { margin-left: 0 !important; }
+  body { background: #fff !important; }
+  .printable { max-width: 100% !important; }
+}
+</style>
+{% endblock %}

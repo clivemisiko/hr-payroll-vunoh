@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vunoh Global HR — People & Payroll Platform</title>
+  <meta name="description" content="Vunoh Global internal HR and payroll management platform"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+  <style>
+    .landing { min-height: 100vh; background: var(--navy-deep); overflow: hidden; }
+    .landing-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 60px; position: relative; z-index: 10;
+    }
+    .landing-logo { display: flex; align-items: center; gap: 12px; }
+    .landing-logo-box {
+      width: 42px; height: 42px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 15px; color: #fff;
+    }
+    .landing-logo-text { font-size: 18px; font-weight: 700; color: #fff; }
+    .landing-nav-links { display: flex; gap: 12px; }
+    .hero {
+      text-align: center; padding: 80px 40px 60px;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(27,117,187,.25) 0%, transparent 70%);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px;
+      border-radius: 100px; background: rgba(0,174,239,.12); border: 1px solid rgba(0,174,239,.25);
+      color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 28px;
+    }
+    .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 68px); font-weight: 800; color: #fff;
+      line-height: 1.1; margin-bottom: 22px;
+    }
+    .hero h1 span { background: linear-gradient(135deg, var(--accent), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 18px; color: rgba(255,255,255,.6); max-width: 560px; margin: 0 auto 40px; line-height: 1.7; }
+    .hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .features {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+      gap: 20px; max-width: 1100px; margin: 60px auto 0; padding: 0 40px;
+    }
+    .feature-card {
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius); padding: 28px; transition: all .3s;
+    }
+    .feature-card:hover { background: rgba(255,255,255,.07); transform: translateY(-4px); border-color: rgba(0,174,239,.3); }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 12px; display: flex;
+      align-items: center; justify-content: center; margin-bottom: 16px;
+      background: linear-gradient(135deg, rgba(27,117,187,.3), rgba(0,174,239,.2));
+    }
+    .feature-icon svg { width: 24px; height: 24px; color: var(--accent); }
+    .feature-card h3 { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .feature-card p { font-size: 14px; color: rgba(255,255,255,.5); line-height: 1.6; }
+    .landing-footer { text-align: center; padding: 40px; color: rgba(255,255,255,.3); font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="landing">
+  <nav class="landing-nav">
+    <div class="landing-logo">
+      <div class="landing-logo-box">VG</div>
+      <span class="landing-logo-text">Vunoh Global</span>
+    </div>
+    <div class="landing-nav-links">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)">Sign In</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Internal HR & Payroll Platform
+    </div>
+    <h1>People management,<br><span>done right</span></h1>
+    <p>Streamline employee records, leave approvals, and payroll — all in one intelligent platform built for growing teams.</p>
+    <div class="hero-cta">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-accent" style="font-size:16px;padding:13px 32px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Sign In to Platform
+      </a>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h3>Employee Records</h3>
+      <p>Full employee profiles with org hierarchy, role management, and soft-deactivation that preserves payroll history.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <h3>Smart Leave Management</h3>
+      <p>Coverage checks, notice period enforcement, auto-escalation after 48 hrs, balance tracking, and payroll integration.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <h3>Automated Payroll</h3>
+      <p>Pro-rated payslips for mid-month joiners, progressive tax brackets, social security, and unpaid leave deductions.</p>
+    </div>
+  </div>
+
+  <div class="landing-footer">
+    <p>&copy; {{ now.year }} Vunoh Global. All rights reserved. Internal use only.</p>
+  </div>
+</div>
+<script>
+// Pass year to template context via inline injection
+</script>
+</body>
+</html>

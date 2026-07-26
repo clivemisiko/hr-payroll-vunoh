@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block page_title %}My Payslips{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">My Payslip History</span>
+  </div>
+  {% if payslips %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Period</th><th>Prorated Gross</th><th>Deductions</th><th>Net Take-Home</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+      {% for p in payslips %}
+      <tr>
+        <td><strong style="font-size:15px;">{{ p.period.label }}</strong></td>
+        <td>{{ '{:,.2f}'.format(p.prorated_gross) }}</td>
+        <td>{{ '{:,.2f}'.format(p.total_deductions) }}</td>
+        <td><strong style="font-size:16px;color:var(--primary);">KES {{ '{:,.2f}'.format(p.net_pay) }}</strong></td>
+        <td>
+          <a href="{{ url_for('payroll.payslip_detail', id=p.id) }}" class="btn btn-ghost btn-sm">View Payslip</a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <h3>No payslips available</h3>
+    <p>Your generated payslips will appear here once payroll is processed.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

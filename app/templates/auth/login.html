@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In — Vunoh Global HR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+  <style>
+    body { background: var(--navy-deep); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .login-card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 20px; padding: 44px 40px; width: 100%; max-width: 420px; backdrop-filter: blur(20px); }
+    .login-brand { text-align: center; margin-bottom: 36px; }
+    .login-logo { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg,var(--primary),var(--accent)); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; color: #fff; margin: 0 auto 14px; }
+    .login-title { font-size: 22px; font-weight: 800; color: #fff; }
+    .login-sub { font-size: 14px; color: rgba(255,255,255,.4); margin-top: 4px; }
+    .login-form .form-label { color: rgba(255,255,255,.7); }
+    .login-form .form-control { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); color: #fff; }
+    .login-form .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,174,239,.15); background: rgba(255,255,255,.08); }
+    .login-form .form-control::placeholder { color: rgba(255,255,255,.25); }
+    .login-btn { width: 100%; font-size: 15px; padding: 12px; margin-top: 8px; }
+    .login-footer { margin-top: 28px; text-align: center; }
+    .login-footer a { color: rgba(255,255,255,.4); font-size: 13px; }
+    .login-footer a:hover { color: var(--accent); }
+    .demo-creds { background: rgba(0,174,239,.08); border: 1px solid rgba(0,174,239,.2); border-radius: 10px; padding: 14px 16px; margin-top: 20px; font-size: 12px; color: rgba(255,255,255,.5); }
+    .demo-creds strong { color: rgba(255,255,255,.7); }
+    .remember-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .remember-row input { width: 16px; height: 16px; accent-color: var(--accent); }
+    .remember-row label { font-size: 13px; color: rgba(255,255,255,.5); cursor: pointer; }
+    .flash-container { width: 100%; max-width: 420px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div class="flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">
+        <span>{{ message }}</span>
+        <button onclick="this.parentElement.remove()" class="flash-close">&times;</button>
+      </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </div>
+
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-logo">VG</div>
+      <div class="login-title">Vunoh Global HR</div>
+      <div class="login-sub">Sign in to your workspace</div>
+    </div>
+
+    <form method="POST" class="login-form">
+      <div class="form-group">
+        <label class="form-label" for="username">Username or Email</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required autofocus/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required/>
+      </div>
+      <div class="remember-row">
+        <input type="checkbox" id="remember" name="remember"/>
+        <label for="remember">Remember me for 30 days</label>
+      </div>
+      <button type="submit" class="btn btn-accent login-btn" style="margin-top:20px;">Sign In</button>
+    </form>
+
+    <div class="demo-creds">
+      <strong>Demo accounts:</strong><br>
+      Admin: <strong>admin</strong> / <strong>Admin@1234</strong><br>
+      Manager: <strong>brian.kamau</strong> / <strong>Eng@1234</strong><br>
+      Employee: <strong>alice.njeri</strong> / <strong>Alice@1234</strong>
+    </div>
+
+    <div class="login-footer">
+      <a href="{{ url_for('main.index') }}">&larr; Back to homepage</a>
+    </div>
+  </div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

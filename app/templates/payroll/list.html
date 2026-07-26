@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block page_title %}Payroll Periods{% endblock %}
+{% block topbar_actions %}
+  {% if current_user.is_manager %}
+  <a href="{{ url_for('payroll.generate') }}" class="btn btn-primary btn-sm">+ Generate Payroll</a>
+  {% endif %}
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Payroll Periods</span>
+  </div>
+  {% if periods %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Period</th><th>Status</th><th>Total Payslips</th><th>Generated Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+      {% for p in periods %}
+      <tr>
+        <td><strong style="font-size:16px;">{{ p.label }}</strong></td>
+        <td><span class="badge badge-{{ p.status }}">{{ p.status|capitalize }}</span></td>
+        <td><strong>{{ p.payslips|length }}</strong> employee payslips</td>
+        <td style="font-size:13px;color:var(--text-muted);">{{ p.generated_at.strftime('%d %b %Y %H:%M') if p.generated_at else 'N/A' }}</td>
+        <td>
+          <a href="{{ url_for('payroll.period_detail', id=p.id) }}" class="btn btn-ghost btn-sm">View Period</a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <h3>No payroll periods generated yet</h3>
+    <p>{% if current_user.is_manager %}<a href="{{ url_for('payroll.generate') }}">Click here to generate your first payroll</a>{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

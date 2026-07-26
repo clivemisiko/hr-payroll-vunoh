@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block page_title %}Leave Requests{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('leave.calendar') }}" class="btn btn-ghost btn-sm">Who's Out</a>
+  <a href="{{ url_for('leave.balances') }}" class="btn btn-ghost btn-sm">Balances</a>
+  {% if current_user.employee_id %}
+  <a href="{{ url_for('leave.request_leave') }}" class="btn btn-accent btn-sm">+ Request Leave</a>
+  {% endif %}
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="card-title">Leave Requests</span>
+      <div style="display:flex;gap:4px;margin-left:12px;">
+        <a href="{{ url_for('leave.list_requests', status='all') }}" class="btn btn-sm {{ 'btn-primary' if status_filter=='all' else 'btn-ghost' }}">All</a>
+        <a href="{{ url_for('leave.list_requests', status='pending') }}" class="btn btn-sm {{ 'btn-primary' if status_filter=='pending' else 'btn-ghost' }}">Pending</a>
+        <a href="{{ url_for('leave.list_requests', status='escalated') }}" class="btn btn-sm {{ 'btn-primary' if status_filter=='escalated' else 'btn-ghost' }}">Escalated</a>
+        <a href="{{ url_for('leave.list_requests', status='approved') }}" class="btn btn-sm {{ 'btn-primary' if status_filter=='approved' else 'btn-ghost' }}">Approved</a>
+        <a href="{{ url_for('leave.list_requests', status='rejected') }}" class="btn btn-sm {{ 'btn-primary' if status_filter=='rejected' else 'btn-ghost' }}">Rejected</a>
+      </div>
+    </div>
+  </div>
+  {% if leave_requests %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Employee</th><th>Leave Type</th><th>Dates</th><th>Days</th><th>Flags / Risk</th><th>Status</th><th>Submitted</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for lr in leave_requests %}
+      <tr>
+        <td>#{{ lr.id }}</td>
+        <td>
+          <strong>{{ lr.employee.full_name }}</strong>
+          <div style="font-size:12px;color:var(--text-muted);">{{ lr.employee.department.name if lr.employee.department else '' }}</div>
+        </td>
+        <td>{{ lr.leave_type.name }}</td>
+        <td style="font-size:13px;">{{ lr.start_date.strftime('%d %b %Y') }} &rarr; {{ lr.end_date.strftime('%d %b %Y') }}</td>
+        <td><strong>{{ lr.days_requested }}</strong></td>
+        <td>
+          <div class="flag-row">
+            {% if lr.status == 'escalated' %}<span class="badge badge-escalated">Overdue Escalation</span>{% endif %}
+            {% if lr.flag_insufficient_notice %}<span class="flag">⚠ Insufficient Notice</span>{% endif %}
+            {% if lr.flag_team_coverage_risk %}<span class="flag">⚠ Coverage Risk</span>{% endif %}
+            {% if lr.flag_balance_exceeded %}<span class="flag">⚠ Balance Exceeded</span>{% endif %}
+            {% if not lr.flag_insufficient_notice and not lr.flag_team_coverage_risk and not lr.flag_balance_exceeded and lr.status != 'escalated' %}
+              <span style="font-size:12px;color:var(--text-light);">Clean</span>
+            {% endif %}
+          </div>
+        </td>
+        <td><span class="badge badge-{{ lr.status }}">{{ lr.status|capitalize }}</span></td>
+        <td style="font-size:12px;color:var(--text-muted);">{{ lr.created_at.strftime('%d %b %Y') }}</td>
+        <td>
+          <div style="display:flex;gap:4px;">
+            <a href="{{ url_for('leave.view_request', id=lr.id) }}" class="btn btn-ghost btn-sm">View</a>
+            {% if current_user.is_manager and lr.status in ['pending', 'escalated'] %}
+            <form method="POST" action="{{ url_for('leave.approve', id=lr.id) }}" style="display:inline;">
+              <button type="submit" class="btn btn-success btn-sm" title="Approve">✓</button>
+            </form>
+            <form method="POST" action="{{ url_for('leave.reject', id=lr.id) }}" style="display:inline;">
+              <button type="submit" class="btn btn-danger btn-sm" title="Reject">&times;</button>
+            </form>
+            {% endif %}
+            {% if lr.employee_id == current_user.employee_id and lr.status == 'pending' %}
+            <form method="POST" action="{{ url_for('leave.cancel', id=lr.id) }}" style="display:inline;">
+              <button type="submit" class="btn btn-ghost btn-sm" data-confirm="Cancel this request?">Cancel</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <h3>No leave requests found</h3>
+    <p>There are no leave requests matching the selected filter.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

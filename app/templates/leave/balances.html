@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block page_title %}Leave Balances{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <span class="card-title">Leave Balances for {{ employee.full_name }} ({{ year }})</span>
+    {% if current_user.is_manager and all_employees %}
+    <form method="GET" style="display:flex;gap:8px;align-items:center;">
+      <select name="employee_id" class="form-control" style="margin:0;max-width:220px;" onchange="this.form.submit()">
+        {% for emp in all_employees %}
+        <option value="{{ emp.id }}" {% if emp.id == employee.id %}selected{% endif %}>{{ emp.full_name }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    {% endif %}
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Leave Type</th><th>Paid?</th><th>Entitled Days</th><th>Carried Over</th><th>Used Days</th><th>Remaining Days</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for item in balances_data %}
+      <tr>
+        <td>
+          <strong>{{ item.leave_type.name }}</strong>
+          <div style="font-size:12px;color:var(--text-muted);">{{ item.leave_type.description }}</div>
+        </td>
+        <td>
+          <span class="badge {{ 'badge-approved' if item.leave_type.is_paid else 'badge-pending' }}">
+            {{ 'Paid' if item.leave_type.is_paid else 'Unpaid' }}
+          </span>
+        </td>
+        <td>{{ item.balance.entitled_days }}</td>
+        <td>{{ item.balance.carried_over }}</td>
+        <td>{{ item.balance.used_days }}</td>
+        <td>
+          <strong style="font-size:16px;color:{% if item.balance.remaining_days > 0 %}var(--success){% else %}var(--danger){% endif %};">
+            {{ item.balance.remaining_days }}
+          </strong>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

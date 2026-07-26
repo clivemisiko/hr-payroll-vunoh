@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div style="max-width:720px;margin:0 auto;">
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">{{ title }}</span>
+    <a href="{{ url_for('employees.list_employees') }}" class="btn btn-ghost btn-sm">← Back</a>
+  </div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input type="text" name="first_name" class="form-control" value="{{ employee.first_name if employee else '' }}" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input type="text" name="last_name" class="form-control" value="{{ employee.last_name if employee else '' }}" required/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" name="email" class="form-control" value="{{ employee.email if employee else '' }}" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control" value="{{ employee.phone if employee else '' }}"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Job Role / Title *</label>
+        <input type="text" name="role" class="form-control" value="{{ employee.role if employee else '' }}" required/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <select name="department_id" class="form-control">
+            <option value="">— None —</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}" {% if employee and employee.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Manager</label>
+          <select name="manager_id" class="form-control">
+            <option value="">— None (Top Level) —</option>
+            {% for m in managers %}
+            <option value="{{ m.id }}" {% if employee and employee.manager_id == m.id %}selected{% endif %}>{{ m.full_name }} — {{ m.role }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Start Date *</label>
+          <input type="date" name="start_date" class="form-control" value="{{ employee.start_date.strftime('%Y-%m-%d') if employee else '' }}" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Employment Type *</label>
+          <select name="employment_type" class="form-control" required>
+            {% for et in ['full_time','part_time','contract','intern'] %}
+            <option value="{{ et }}" {% if employee and employee.employment_type == et %}selected{% endif %}>{{ et.replace('_',' ')|title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Monthly Gross Salary *</label>
+        <input type="number" name="salary" class="form-control" value="{{ employee.salary if employee else '' }}" min="0" step="100" required/>
+      </div>
+      {% if not employee %}
+      <div class="form-group">
+        <label class="form-label">Login Password</label>
+        <input type="password" name="password" class="form-control" placeholder="Set initial password (leave blank to skip)"/>
+        <div class="form-hint">A user account will be created if a password is provided.</div>
+      </div>
+      {% endif %}
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary">{{ 'Update Employee' if employee else 'Add Employee' }}</button>
+        <a href="{{ url_for('employees.list_employees') }}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+{% endblock %}

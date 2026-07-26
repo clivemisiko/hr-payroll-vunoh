@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block page_title %}{{ employee.full_name }}{% endblock %}
+{% block topbar_actions %}
+  {% if current_user.is_manager %}
+  <a href="{{ url_for('employees.edit_employee', id=employee.id) }}" class="btn btn-ghost btn-sm">Edit</a>
+  {% if employee.is_active %}
+  <form method="POST" action="{{ url_for('employees.deactivate_employee', id=employee.id) }}" style="display:inline;">
+    <button type="submit" class="btn btn-danger btn-sm" data-confirm="Deactivate {{ employee.full_name }}?">Deactivate</button>
+  </form>
+  {% endif %}
+  {% endif %}
+{% endblock %}
+{% block content %}
+<div style="display:grid;grid-template-columns:340px 1fr;gap:24px;" class="det-grid">
+
+  <!-- Profile card -->
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div style="background:linear-gradient(135deg,var(--navy-deep),var(--navy));padding:32px;text-align:center;border-radius:var(--radius) var(--radius) 0 0;">
+        <div class="user-avatar" style="width:72px;height:72px;font-size:26px;margin:0 auto 14px;">{{ employee.first_name[0] }}</div>
+        <div style="font-size:20px;font-weight:800;color:#fff;">{{ employee.full_name }}</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.5);margin-top:4px;">{{ employee.role }}</div>
+        <div style="margin-top:12px;">
+          <span class="badge {{ 'badge-active' if employee.is_active else 'badge-inactive' }}">{{ 'Active' if employee.is_active else 'Inactive' }}</span>
+          <span class="badge badge-{{ employee.employment_type }}" style="margin-left:6px;">{{ employee.employment_type.replace('_',' ')|title }}</span>
+        </div>
+      </div>
+      <div class="card-body" style="padding:20px;">
+        <div style="display:grid;gap:12px;">
+          <div><span style="font-size:12px;color:var(--text-muted);">Email</span><div style="font-weight:500;font-size:14px;">{{ employee.email }}</div></div>
+          {% if employee.phone %}<div><span style="font-size:12px;color:var(--text-muted);">Phone</span><div style="font-weight:500;font-size:14px;">{{ employee.phone }}</div></div>{% endif %}
+          <div><span style="font-size:12px;color:var(--text-muted);">Department</span><div style="font-weight:500;font-size:14px;">{{ employee.department.name if employee.department else '—' }}</div></div>
+          <div><span style="font-size:12px;color:var(--text-muted);">Manager</span><div style="font-weight:500;font-size:14px;">{% if employee.manager %}<a href="{{ url_for('employees.employee_detail', id=employee.manager.id) }}">{{ employee.manager.full_name }}</a>{% else %}—{% endif %}</div></div>
+          <div><span style="font-size:12px;color:var(--text-muted);">Start Date</span><div style="font-weight:500;font-size:14px;">{{ employee.start_date.strftime('%d %B %Y') }}</div></div>
+          <div><span style="font-size:12px;color:var(--text-muted);">Years of Service</span><div style="font-weight:500;font-size:14px;">{{ employee.years_of_service() }} yrs</div></div>
+          {% if current_user.is_manager %}<div><span style="font-size:12px;color:var(--text-muted);">Monthly Salary</span><div style="font-weight:700;font-size:16px;color:var(--primary);">{{ '{:,.0f}'.format(employee.salary) }}</div></div>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    {% if employee.direct_reports %}
+    <div class="card">
+      <div class="card-header"><span class="card-title">Direct Reports ({{ employee.direct_reports|length }})</span></div>
+      <ul style="list-style:none;padding:0;">
+      {% for r in employee.direct_reports if r.is_active %}
+      <li style="padding:10px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <div class="user-avatar" style="width:30px;height:30px;font-size:11px;">{{ r.first_name[0] }}</div>
+        <div><a href="{{ url_for('employees.employee_detail', id=r.id) }}" style="font-weight:600;font-size:14px;">{{ r.full_name }}</a><div style="font-size:12px;color:var(--text-muted);">{{ r.role }}</div></div>
+      </li>
+      {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Leave history + payslips -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Leave History</span>
+        <a href="{{ url_for('leave.request_leave') }}" class="btn btn-accent btn-sm">+ Request Leave</a>
+      </div>
+      {% if leave_history %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Period</th><th>Days</th><th>Status</th><th>Filed</th></tr></thead>
+          <tbody>
+          {% for lr in leave_history[:8] %}
+          <tr>
+            <td>{{ lr.leave_type.name }}</td>
+            <td style="font-size:13px;">{{ lr.start_date.strftime('%d %b') }} – {{ lr.end_date.strftime('%d %b %Y') }}</td>
+            <td>{{ lr.days_requested }}</td>
+            <td><span class="badge badge-{{ lr.status }}">{{ lr.status|capitalize }}</span></td>
+            <td style="font-size:12px;color:var(--text-muted);">{{ lr.created_at.strftime('%d %b %Y') }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="empty-state" style="padding:30px;"><p>No leave history.</p></div>{% endif %}
+    </div>
+
+    {% if current_user.is_manager %}
+    <div class="card">
+      <div class="card-header"><span class="card-title">Payslips</span></div>
+      {% if payslips %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Period</th><th>Gross</th><th>Deductions</th><th>Net Pay</th><th></th></tr></thead>
+          <tbody>
+          {% for p in payslips[:6] %}
+          <tr>
+            <td>{{ p.period.label }}</td>
+            <td>{{ '{:,.0f}'.format(p.prorated_gross) }}</td>
+            <td>{{ '{:,.0f}'.format(p.total_deductions) }}</td>
+            <td style="font-weight:700;color:var(--primary);">{{ '{:,.0f}'.format(p.net_pay) }}</td>
+            <td><a href="{{ url_for('payroll.payslip_detail', id=p.id) }}" class="btn btn-ghost btn-sm">View</a></td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="empty-state" style="padding:30px;"><p>No payslips yet.</p></div>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+<style>@media(max-width:900px){.det-grid{grid-template-columns:1fr!important;}}</style>
+{% endblock %}

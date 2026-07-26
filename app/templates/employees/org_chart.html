@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block page_title %}Org Chart{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header"><span class="card-title">Organisation Structure</span></div>
+  <div class="card-body" style="overflow-x:auto;">
+    <div class="org-tree">
+      {% macro render_node(emp, depth=0) %}
+      <div class="org-item">
+        <div class="org-node" style="border-top: 3px solid var(--{% if depth==0 %}accent{% elif depth==1 %}primary{% else %}border{% endif %});">
+          <div class="org-node-name">
+            <a href="{{ url_for('employees.employee_detail', id=emp.id) }}" style="color:var(--navy);">{{ emp.full_name }}</a>
+          </div>
+          <div class="org-node-role">{{ emp.role }}</div>
+          {% if emp.department %}<div style="font-size:11px;color:var(--text-light);margin-top:3px;">{{ emp.department.name }}</div>{% endif %}
+        </div>
+        {% set reports = emp.direct_reports | selectattr('is_active') | list %}
+        {% if reports %}
+        <div class="org-connector"></div>
+        <div class="org-children">
+          {% for report in reports %}
+            {% if not loop.first and not loop.last %}
+            {% endif %}
+            {{ render_node(report, depth+1) }}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endmacro %}
+      <div style="display:flex;gap:40px;justify-content:center;flex-wrap:wrap;">
+        {% for emp in top_level %}
+          {{ render_node(emp) }}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block page_title %}Generate Payroll{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:0 auto;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Generate Monthly Payroll</span>
+      <a href="{{ url_for('payroll.list_periods') }}" class="btn btn-ghost btn-sm">← Back</a>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Year *</label>
+            <input type="number" name="year" class="form-control" value="{{ months[0][0] }}" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Month *</label>
+            <select name="month" class="form-control" required>
+              {% for m_num in range(1, 13) %}
+              <option value="{{ m_num }}" {% if m_num == months[0][1] %}selected{% endif %}>
+                {{ calendar.month_name[m_num] }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-top:12px;">
+          <strong>Automated Payroll Calculation Rules:</strong>
+          <ul style="margin-top:6px;font-size:13px;">
+            <li><strong>Mid-Month Joiners:</strong> Pro-rated based on exact working days remaining in the month.</li>
+            <li><strong>Unpaid Leave:</strong> Deducted based on daily rate (Gross / Total Working Days).</li>
+            <li><strong>Social Security:</strong> 6% of gross salary (capped at 4,500).</li>
+            <li><strong>Progressive Tax Brackets:</strong> Calculated on taxable income (Gross - Social Security).</li>
+          </ul>
+        </div>
+
+        <div style="margin-top:20px;">
+          <button type="submit" class="btn btn-primary" style="width:100%;">⚡ Generate Payslips Now</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

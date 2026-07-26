@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block page_title %}Payroll Summary — {{ period.label }}{% endblock %}
+{% block topbar_actions %}
+  {% if period.status != 'finalized' and current_user.is_manager %}
+  <form method="POST" action="{{ url_for('payroll.finalize_period', id=period.id) }}" style="display:inline;">
+    <button type="submit" class="btn btn-success btn-sm" data-confirm="Finalize this payroll period? No further edits will be allowed.">Finalize Payroll</button>
+  </form>
+  {% endif %}
+  <a href="{{ url_for('payroll.list_periods') }}" class="btn btn-ghost btn-sm">← Back</a>
+{% endblock %}
+{% block content %}
+<!-- Summary stats bar -->
+<div class="stats-grid" style="margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-value" style="font-size:24px;">{{ '{:,.0f}'.format(total_gross) }}</div>
+    <div class="stat-label">Total Prorated Gross</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="font-size:24px;color:var(--danger);">{{ '{:,.0f}'.format(total_tax) }}</div>
+    <div class="stat-label">Total Income Tax</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="font-size:24px;color:var(--warning);">{{ '{:,.0f}'.format(total_ss) }}</div>
+    <div class="stat-label">Total Social Security</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="font-size:24px;color:var(--success);">{{ '{:,.0f}'.format(total_net) }}</div>
+    <div class="stat-label">Total Net Payout</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <span class="card-title">Employee Payslips ({{ period.label }})</span>
+      <span class="badge badge-{{ period.status }}" style="margin-left:8px;">{{ period.status|capitalize }}</span>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Employee</th><th>Base Salary</th><th>Days Worked</th><th>Prorated Gross</th>
+          <th>Unpaid Days</th><th>Social Security (6%)</th><th>Income Tax</th><th>Net Pay</th><th>Notes / Edge Cases</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for p in payslips %}
+      <tr>
+        <td>
+          <strong>{{ p.employee.full_name }}</strong>
+          <div style="font-size:12px;color:var(--text-muted);">{{ p.employee.role }}</div>
+        </td>
+        <td>{{ '{:,.0f}'.format(p.gross_salary) }}</td>
+        <td>{{ p.days_worked }} / {{ p.days_in_month }}</td>
+        <td><strong>{{ '{:,.0f}'.format(p.prorated_gross) }}</strong></td>
+        <td>
+          {% if p.unpaid_leave_days > 0 %}
+          <span class="badge badge-rejected">{{ p.unpaid_leave_days }}d (-{{ '{:,.0f}'.format(p.unpaid_leave_deduction) }})</span>
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ '{:,.0f}'.format(p.social_security) }}</td>
+        <td>{{ '{:,.0f}'.format(p.income_tax) }}</td>
+        <td><strong style="font-size:15px;color:var(--primary);">{{ '{:,.0f}'.format(p.net_pay) }}</strong></td>
+        <td style="font-size:12px;color:var(--text-muted);max-width:200px;">{{ p.notes if p.notes else 'Standard full month' }}</td>
+        <td>
+          <a href="{{ url_for('payroll.payslip_detail', id=p.id) }}" class="btn btn-ghost btn-sm">Payslip</a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

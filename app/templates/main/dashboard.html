@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block page_title %}Dashboard{% endblock %}
+{% block topbar_actions %}
+  {% if current_user.is_manager %}
+  <a href="{{ url_for('payroll.generate') }}" class="btn btn-primary btn-sm">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Generate Payroll
+  </a>
+  {% endif %}
+  {% if current_user.employee_id %}
+  <a href="{{ url_for('leave.request_leave') }}" class="btn btn-accent btn-sm">Request Leave</a>
+  {% endif %}
+{% endblock %}
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div class="stat-value">{{ total_employees }}</div>
+    <div class="stat-label">Active Employees</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon cyan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div class="stat-value">{{ on_leave_today|length }}</div>
+    <div class="stat-label">Out Today</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="stat-value">{{ pending_requests }}</div>
+    <div class="stat-label">Pending Leave Requests</div>
+  </div>
+  {% if escalated_requests > 0 %}
+  <div class="stat-card">
+    <div class="stat-icon red">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <div class="stat-value">{{ escalated_requests }}</div>
+    <div class="stat-label">Escalated (Overdue)</div>
+  </div>
+  {% endif %}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;" class="dash-grid">
+  <!-- Pending Approvals -->
+  {% if current_user.is_manager %}
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Pending Approvals</span>
+      <a href="{{ url_for('leave.list_requests', status='pending') }}" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    {% if pending_leave %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Flags</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for lr in pending_leave[:5] %}
+        <tr>
+          <td><strong>{{ lr.employee.full_name }}</strong></td>
+          <td>{{ lr.leave_type.name }}</td>
+          <td style="font-size:12px;">{{ lr.start_date.strftime('%d %b') }} – {{ lr.end_date.strftime('%d %b') }}</td>
+          <td>
+            <div class="flag-row">
+            {% if lr.status == 'escalated' %}<span class="badge badge-escalated">Escalated</span>{% endif %}
+            {% if lr.flag_insufficient_notice %}<span class="flag">⚠ Notice</span>{% endif %}
+            {% if lr.flag_team_coverage_risk %}<span class="flag">⚠ Coverage</span>{% endif %}
+            </div>
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <form method="POST" action="{{ url_for('leave.approve', id=lr.id) }}" style="display:inline;">
+                <button type="submit" class="btn btn-success btn-sm">✓</button>
+              </form>
+              <a href="{{ url_for('leave.view_request', id=lr.id) }}" class="btn btn-ghost btn-sm">View</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:30px;">
+      <p>No pending approvals 🎉</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Who's Out Today -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Who's Out Today</span>
+      <a href="{{ url_for('leave.calendar') }}" class="btn btn-ghost btn-sm">Calendar</a>
+    </div>
+    {% if on_leave_today %}
+    <div class="card-body" style="padding:0;">
+      <ul style="list-style:none;padding:0;">
+      {% for emp in on_leave_today %}
+      <li style="display:flex;align-items:center;gap:12px;padding:12px 22px;border-bottom:1px solid var(--border);">
+        <div class="user-avatar" style="width:36px;height:36px;font-size:13px;background:linear-gradient(135deg,var(--primary),var(--accent));">
+          {{ emp.first_name[0] }}
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:14px;">{{ emp.full_name }}</div>
+          <div style="font-size:12px;color:var(--text-muted);">{{ emp.role }}</div>
+        </div>
+      </li>
+      {% endfor %}
+      </ul>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:30px;">
+      <p>Everyone is in today ✅</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- My Upcoming Leave -->
+  {% if current_user.employee_id %}
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">My Upcoming Leave</span>
+      <a href="{{ url_for('leave.request_leave') }}" class="btn btn-accent btn-sm">+ Request</a>
+    </div>
+    {% if my_upcoming_leaves %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Type</th><th>Start</th><th>End</th><th>Days</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for lr in my_upcoming_leaves %}
+        <tr>
+          <td>{{ lr.leave_type.name }}</td>
+          <td>{{ lr.start_date.strftime('%d %b %Y') }}</td>
+          <td>{{ lr.end_date.strftime('%d %b %Y') }}</td>
+          <td>{{ lr.days_requested }}</td>
+          <td><span class="badge badge-{{ lr.status }}">{{ lr.status|capitalize }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:30px;"><p>No upcoming approved leave.</p></div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Latest Payroll Period -->
+  {% if current_user.is_manager %}
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Latest Payroll</span>
+      <a href="{{ url_for('payroll.list_periods') }}" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    <div class="card-body">
+    {% if latest_period %}
+      <div style="font-size:28px;font-weight:800;color:var(--navy);margin-bottom:8px;">{{ latest_period.label }}</div>
+      <span class="badge badge-{{ latest_period.status }}">{{ latest_period.status|capitalize }}</span>
+      <div style="margin-top:16px;display:flex;gap:12px;">
+        <a href="{{ url_for('payroll.period_detail', id=latest_period.id) }}" class="btn btn-primary btn-sm">View Payslips</a>
+        <a href="{{ url_for('payroll.generate') }}" class="btn btn-ghost btn-sm">Generate New</a>
+      </div>
+    {% else %}
+      <div class="empty-state"><p>No payroll generated yet.</p></div>
+      <a href="{{ url_for('payroll.generate') }}" class="btn btn-primary btn-sm">Generate First Payroll</a>
+    {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr!important;}}
+</style>
+{% endblock %}
