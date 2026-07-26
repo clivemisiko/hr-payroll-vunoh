@@ -1,6 +1,6 @@
 # Vunoh Global HR & Payroll Platform
 
-A full-featured internal HR and Payroll application built with Python Flask, SQLite/SQLAlchemy, and modern HTML5/Vanilla CSS/JS, designed specifically according to Vunoh Global's design system and real-world business logic requirements.
+A full-featured internal HR and Payroll application built with Python Flask, PostgreSQL (Neon) / SQLite (SQLAlchemy), and modern HTML5/Vanilla CSS/JS, designed specifically according to Vunoh Global's design system and real-world business logic requirements.
 
 ---
 
@@ -31,7 +31,7 @@ When managing team records, leave, and payroll over spreadsheets, real-world ope
 
 - **Backend:** Python 3.12, Flask, Flask-SQLAlchemy, Flask-Login, Pytest
 - **Frontend:** HTML5, Modern Vanilla CSS3 (Custom design system based on [Vunoh Global](https://www.vunohglobal.com/)), Vanilla JavaScript
-- **Database:** SQLite (`vunoh_hr.db`), with exported SQL dump file (`schema_and_seed_dump.sql`)
+- **Database:** PostgreSQL (Neon Cloud Database for Production/Vercel) / SQLite (`vunoh_hr.db` for local dev), with exported SQL dump file (`schema_and_seed_dump.sql`)
 
 ---
 
@@ -56,14 +56,14 @@ When managing team records, leave, and payroll over spreadsheets, real-world ope
    # On Linux/macOS:
    source venv/bin/activate
 
-   pip install flask flask-sqlalchemy flask-login flask-wtf python-dotenv pytest
+   pip install -r requirements.txt
    ```
 
 3. **Run the Application:**
    ```bash
    python run.py
    ```
-   The application will initialize SQLite database `vunoh_hr.db` and automatically seed realistic sample data on first launch.
+   The application will initialize SQLite database `vunoh_hr.db` locally (or connect to PostgreSQL if `DATABASE_URL` is set in `.env`) and automatically seed realistic sample data on first launch.
    Access the web interface at **`http://127.0.0.1:5050`**.
 
 4. **Run Unit & Integration Tests:**
