@@ -209,32 +209,65 @@ def submit_leave_request(employee: Employee, leave_type: LeaveType,
 
 
 def approve_leave_request(request: LeaveRequest, reviewer: Employee) -> LeaveRequest:
-    """Approve a leave request and deduct from balance."""
-    if request.status != 'pending':
-        raise LeaveValidationError(f"Cannot approve a {request.status} request.")
+    """Approve a leave request and deduct balance if paid leave."""
+    if request.status not in ['pending', 'escalated']:
+        raise LeaveValidationError(f"Cannot approve request with status '{request.status}'.")
 
-    balance = get_or_create_balance(
-        request.employee_id,
-        request.leave_type_id,
-        request.start_date.year,
-    )
-    balance.used_days += request.days_requested
+    # If paid leave, deduct entitlement balance
+    if request.leave_type.is_paid:
+        bal = get_or_create_balance(
+            request.employee_id, request.leave_type_id, request.start_date.year
+        )
+        bal.used_days += request.days_requested
+
     request.status = 'approved'
     request.reviewed_by = reviewer.id
     request.reviewed_at = datetime.utcnow()
     db.session.commit()
+
+    # Send email notification to employee
+    try:
+        from app.utils.email_notifier import send_leave_status_email
+        send_leave_status_email(
+            employee_email=request.employee.email,
+            employee_name=request.employee.full_name,
+            leave_type_name=request.leave_type.name,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            status='approved'
+        )
+    except Exception as e:
+        print(f"Warning: Failed to dispatch leave approval email: {e}")
+
     return request
 
 
-def reject_leave_request(request: LeaveRequest, reviewer: Employee, reason: str = '') -> LeaveRequest:
-    """Reject a leave request."""
-    if request.status != 'pending':
-        raise LeaveValidationError(f"Cannot reject a {request.status} request.")
+def reject_leave_request(request: LeaveRequest, reviewer: Employee, reason: str = None) -> LeaveRequest:
+    """Reject a leave request with optional reason."""
+    if request.status not in ['pending', 'escalated']:
+        raise LeaveValidationError(f"Cannot reject request with status '{request.status}'.")
+
     request.status = 'rejected'
     request.reviewed_by = reviewer.id
     request.reviewed_at = datetime.utcnow()
     request.rejection_reason = reason
     db.session.commit()
+
+    # Send email notification to employee
+    try:
+        from app.utils.email_notifier import send_leave_status_email
+        send_leave_status_email(
+            employee_email=request.employee.email,
+            employee_name=request.employee.full_name,
+            leave_type_name=request.leave_type.name,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            status='rejected',
+            reason=reason
+        )
+    except Exception as e:
+        print(f"Warning: Failed to dispatch leave rejection email: {e}")
+
     return request
 
 

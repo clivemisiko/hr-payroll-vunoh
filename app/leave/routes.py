@@ -100,7 +100,7 @@ def request_leave():
                 )
 
             lr = submit_leave_request(employee, leave_type, start, end, reason)
-            flash(f'Leave request submitted successfully (#{lr.id}).', 'success')
+            flash(f'Leave request #{lr.id} submitted successfully! A decision notification will be emailed to {employee.email}.', 'success')
             if lr.flag_insufficient_notice:
                 flash('⚠ Flagged: Insufficient notice period. Manager review required.', 'warning')
             if lr.flag_team_coverage_risk:
@@ -153,7 +153,7 @@ def approve(id):
         reviewer = Employee.query.first()
     try:
         approve_leave_request(lr, reviewer)
-        flash(f'Leave request #{id} approved.', 'success')
+        flash(f'Leave request #{id} approved. Notification email sent to {lr.employee.email}.', 'success')
     except LeaveValidationError as e:
         flash(str(e), 'danger')
     return redirect(request.referrer or url_for('leave.list_requests'))
@@ -171,7 +171,7 @@ def reject(id):
     reason = request.form.get('rejection_reason', '').strip()
     try:
         reject_leave_request(lr, reviewer, reason)
-        flash(f'Leave request #{id} rejected.', 'info')
+        flash(f'Leave request #{id} rejected. Notification email sent to {lr.employee.email}.', 'info')
     except LeaveValidationError as e:
         flash(str(e), 'danger')
     return redirect(request.referrer or url_for('leave.list_requests'))

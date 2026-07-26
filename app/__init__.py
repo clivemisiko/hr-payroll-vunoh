@@ -18,19 +18,21 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
 
     from app.auth import bp as auth_bp
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-
+    from app.main import bp as main_bp
     from app.employees import bp as employees_bp
-    app.register_blueprint(employees_bp, url_prefix='/employees')
-
     from app.leave import bp as leave_bp
-    app.register_blueprint(leave_bp, url_prefix='/leave')
-
     from app.payroll import bp as payroll_bp
+
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(main_bp)
+    app.register_blueprint(employees_bp, url_prefix='/employees')
+    app.register_blueprint(leave_bp, url_prefix='/leave')
     app.register_blueprint(payroll_bp, url_prefix='/payroll')
 
-    from app.main import bp as main_bp
-    app.register_blueprint(main_bp)
+    from datetime import datetime
+    @app.context_processor
+    def inject_now():
+        return {'now': datetime.utcnow()}
 
     with app.app_context():
         db.create_all()
