@@ -64,7 +64,7 @@ When managing team records, leave, and payroll over spreadsheets, real-world ope
    python run.py
    ```
    The application will initialize SQLite database `vunoh_hr.db` and automatically seed realistic sample data on first launch.
-   Access the web interface at **`http://127.0.0.1:5000`**.
+   Access the web interface at **`http://127.0.0.1:5050`**.
 
 4. **Run Unit & Integration Tests:**
    ```bash
