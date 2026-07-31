@@ -3,7 +3,7 @@ import threading
 import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from flask import current_app
+from flask import current_app, url_for
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,7 @@ def send_leave_status_email(employee_email, employee_name, leave_type_name, star
     status_title = "Approved 🎉" if is_approved else "Rejected"
 
     subject = f"Leave Request {status.capitalize()} — Vunoh HR"
+    dashboard_url = url_for('main.dashboard', _external=True)
 
     reason_html = f"<p style='color:#7f1d1d;background:#fee2e2;padding:12px;border-radius:6px;'><strong>Reason:</strong> {reason}</p>" if reason and not is_approved else ""
 
@@ -77,7 +78,7 @@ def send_leave_status_email(employee_email, employee_name, leave_type_name, star
 
         {reason_html}
 
-        <p style="font-size: 14px; color: #64748b; margin-top: 24px;">You can view your complete leave record and balances in your <a href="http://127.0.0.1:5050" style="color: #1B75BB;">Vunoh HR Dashboard</a>.</p>
+        <p style="font-size: 14px; color: #64748b; margin-top: 24px;">You can view your complete leave record and balances in your <a href="{dashboard_url}" style="color: #1B75BB;">Vunoh HR Dashboard</a>.</p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin-top: 24px;"/>
         <p style="font-size: 12px; color: #94a3b8; text-align: center;">This is an automated notification from Vunoh Global HR Platform.</p>
       </div>
